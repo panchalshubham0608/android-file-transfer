@@ -32,10 +32,3 @@ def pull_file(android_path: str, local_path: str):
 
 def push_file(local_path: str, android_path: str):
     subprocess.run(["adb", "push", local_path, android_path])
-
-def human_readable_size(size_bytes: int) -> str:
-    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-        if size_bytes < 1024.0:
-            return f"{size_bytes:.1f} {unit}"
-        size_bytes /= 1024.0
-    return f"{size_bytes:.1f} PB"
