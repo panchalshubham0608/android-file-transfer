@@ -1,0 +1,40 @@
+# Byte-compiled / compiled files
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# PyInstaller build artifacts
+build/
+dist/
+*.spec
+
+# macOS specific
+.DS_Store
+
+# VSCode / IDE configs
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
+# adb pull output (e.g. /tmp/)
+tmp/
+*.pulled
+
+# Python environment
+pip-selfcheck.json
+
+# Project-specific
+*.db
