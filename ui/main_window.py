@@ -2,11 +2,10 @@ from PyQt6.QtWidgets import (
     QMainWindow, QTableWidget, QTableWidgetItem, QVBoxLayout, QPushButton,
     QWidget, QLabel, QHBoxLayout, QHeaderView
 )
-from PyQt6.QtCore import Qt, QMimeData
 from PyQt6.QtGui import QDragEnterEvent, QDropEvent
 import os
 
-from adb_utils import list_files, pull_file, push_file, AdbFileEntry
+from adb_utils import list_files, push_file
 
 
 class MainWindow(QMainWindow):
@@ -66,7 +65,12 @@ class MainWindow(QMainWindow):
 
         for row, entry in enumerate(files):
             self.table.setItem(row, 0, QTableWidgetItem(("📁 " if entry.is_dir else "📄 ") + entry.name))
-            self.table.setItem(row, 1, QTableWidgetItem(entry.size))
+            try:
+                size_bytes = int(entry.size)
+                size_str = human_readable_size(size_bytes)
+            except ValueError:
+                size_str = entry.size  # fallback if parsing fails
+            self.table.setItem(row, 1, QTableWidgetItem(size_str))
             self.table.setItem(row, 2, QTableWidgetItem(entry.modified))
 
     def navigate(self, row, _):
@@ -92,3 +96,10 @@ class MainWindow(QMainWindow):
             if os.path.isfile(local_file):
                 push_file(local_file, self.current_path)
         self.load_files()
+
+def human_readable_size(size_bytes: int) -> str:
+    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+        if size_bytes < 1024.0:
+            return f"{size_bytes:.1f} {unit}"
+        size_bytes /= 1024.0
+    return f"{size_bytes:.1f} PB"
