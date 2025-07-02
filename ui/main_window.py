@@ -17,6 +17,7 @@ class MainWindow(QMainWindow):
         # Set base and current path
         self.base_path = "/storage/emulated/0"
         self.current_path = self.base_path
+        self.show_hidden = False
         self.history = []
 
         # Table setup
@@ -34,6 +35,11 @@ class MainWindow(QMainWindow):
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
 
+        # Toggle button
+        self.toggle_hidden_button = QPushButton("Show Hidden")
+        self.toggle_hidden_button.setCheckable(True)
+        self.toggle_hidden_button.toggled.connect(self.toggle_hidden_files)
+
         # Navigation UI
         self.back_button = QPushButton("◀")
         self.back_button.clicked.connect(self.go_back)
@@ -44,6 +50,7 @@ class MainWindow(QMainWindow):
         nav_layout = QHBoxLayout()
         nav_layout.addWidget(self.back_button)
         nav_layout.addWidget(self.path_label)
+        nav_layout.addWidget(self.toggle_hidden_button)
         nav_layout.addStretch()
 
         layout = QVBoxLayout()
@@ -61,9 +68,10 @@ class MainWindow(QMainWindow):
         self.path_label.setText(label_text)
 
         files = list_files(self.current_path)
-        self.table.setRowCount(len(files))
+        visible_files = [f for f in files if self.show_hidden or not f.name.startswith(".")]
+        self.table.setRowCount(len(visible_files))
 
-        for row, entry in enumerate(files):
+        for row, entry in enumerate(visible_files):
             self.table.setItem(row, 0, QTableWidgetItem(("📁 " if entry.is_dir else "📄 ") + entry.name))
             try:
                 size_bytes = int(entry.size)
@@ -95,6 +103,11 @@ class MainWindow(QMainWindow):
             local_file = url.toLocalFile()
             if os.path.isfile(local_file):
                 push_file(local_file, self.current_path)
+        self.load_files()
+    
+    def toggle_hidden_files(self, checked: bool):
+        self.show_hidden = checked
+        self.toggle_hidden_button.setText("Hide Hidden" if checked else "Show Hidden")
         self.load_files()
 
 def human_readable_size(size_bytes: int) -> str:
