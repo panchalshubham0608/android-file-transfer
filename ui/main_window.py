@@ -7,6 +7,15 @@ import os
 
 from adb_utils import list_files, push_file
 
+class SortableTableWidgetItem(QTableWidgetItem):
+    def __init__(self, text: str, sort_value):
+        super().__init__(text)
+        self.sort_value = sort_value
+
+    def __lt__(self, other):
+        if isinstance(other, SortableTableWidgetItem):
+            return self.sort_value < other.sort_value
+        return super().__lt__(other)
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -77,9 +86,11 @@ class MainWindow(QMainWindow):
             try:
                 size_bytes = int(entry.size)
                 size_str = human_readable_size(size_bytes)
+                size_item = SortableTableWidgetItem(size_str, size_bytes)
             except ValueError:
                 size_str = entry.size  # fallback if parsing fails
-            self.table.setItem(row, 1, QTableWidgetItem(size_str))
+                size_item = QTableWidgetItem(entry.size)
+            self.table.setItem(row, 1, size_item)
             self.table.setItem(row, 2, QTableWidgetItem(entry.modified))
 
     def navigate(self, row, _):
