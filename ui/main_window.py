@@ -25,6 +25,7 @@ class MainWindow(QMainWindow):
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(["Name", "Size", "Modified"])
         self.table.cellDoubleClicked.connect(self.navigate)
+        self.table.setSortingEnabled(True)
         self.table.setAcceptDrops(True)
         self.table.viewport().setAcceptDrops(True)
         self.setAcceptDrops(True)
