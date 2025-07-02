@@ -1,8 +1,13 @@
-from PyQt6.QtWidgets import QMainWindow, QTableWidget, QTableWidgetItem, QVBoxLayout, QPushButton, QWidget, QFileDialog
+from PyQt6.QtWidgets import (
+    QMainWindow, QTableWidget, QTableWidgetItem, QVBoxLayout, QPushButton,
+    QWidget, QLabel, QHBoxLayout, QHeaderView
+)
 from PyQt6.QtCore import Qt, QMimeData
 from PyQt6.QtGui import QDragEnterEvent, QDropEvent
-from adb_utils import list_files, pull_file, push_file, AdbFileEntry
 import os
+
+from adb_utils import list_files, pull_file, push_file, AdbFileEntry
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -10,23 +15,40 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Android File Browser")
         self.resize(800, 600)
 
-        self.current_path = "/storage/self/primary/"
+        # Set base and current path
+        self.base_path = "/storage/emulated/0"
+        self.current_path = self.base_path
         self.history = []
 
+        # Table setup
         self.table = QTableWidget()
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(["Name", "Size", "Modified"])
         self.table.cellDoubleClicked.connect(self.navigate)
-
         self.table.setAcceptDrops(True)
         self.table.viewport().setAcceptDrops(True)
         self.setAcceptDrops(True)
 
-        back_button = QPushButton("⬅️ Back")
-        back_button.clicked.connect(self.go_back)
+        # Resize columns
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+
+        # Navigation UI
+        self.back_button = QPushButton("◀")
+        self.back_button.clicked.connect(self.go_back)
+
+        label_text = self.current_path if self.current_path == self.base_path else os.path.basename(self.current_path)
+        self.path_label = QLabel(label_text)
+
+        nav_layout = QHBoxLayout()
+        nav_layout.addWidget(self.back_button)
+        nav_layout.addWidget(self.path_label)
+        nav_layout.addStretch()
 
         layout = QVBoxLayout()
-        layout.addWidget(back_button)
+        layout.addLayout(nav_layout)
         layout.addWidget(self.table)
 
         container = QWidget()
@@ -36,10 +58,12 @@ class MainWindow(QMainWindow):
         self.load_files()
 
     def load_files(self):
-        self.setWindowTitle(f"Android File Browser - {self.current_path}")
+        label_text = self.current_path if self.current_path == self.base_path else os.path.basename(self.current_path)
+        self.path_label.setText(label_text)
+
         files = list_files(self.current_path)
-        print(f"Loaded {len(files)} entries from: {self.current_path}")
         self.table.setRowCount(len(files))
+
         for row, entry in enumerate(files):
             self.table.setItem(row, 0, QTableWidgetItem(("📁 " if entry.is_dir else "📄 ") + entry.name))
             self.table.setItem(row, 1, QTableWidgetItem(entry.size))
@@ -68,17 +92,3 @@ class MainWindow(QMainWindow):
             if os.path.isfile(local_file):
                 push_file(local_file, self.current_path)
         self.load_files()
-
-    def start_drag(self, row):
-        file_name = self.table.item(row, 0).text()[2:].strip()
-        android_file_path = os.path.join(self.current_path, file_name)
-
-        # Pull to temp
-        temp_path = os.path.join("/tmp", file_name)
-        pull_file(android_file_path, temp_path)
-
-        mime = QMimeData()
-        mime.setUrls([QtCore.QUrl.fromLocalFile(temp_path)])
-        drag = QtGui.QDrag(self)
-        drag.setMimeData(mime)
-        drag.exec()
