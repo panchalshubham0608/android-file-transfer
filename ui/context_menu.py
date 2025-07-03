@@ -9,7 +9,8 @@ import os
 from typing import Callable, List
 from utils.adb_utils import pull_files, delete_files_on_device
 from PyQt6.QtGui import QAction, QCursor
-
+from ui.loading_dialog import LoadingDialog
+from PyQt6.QtWidgets import QApplication
 
 def show_context_menu(
     parent: QWidget,
@@ -61,24 +62,28 @@ def show_context_menu(
     menu.exec(QCursor.pos()) # type: ignore
 
 
-def export_files(
-    paths: List[str], parent: QWidget, reload_callback: Callable[[], None]
-) -> None:
+def export_files(paths: List[str], parent: QWidget, reload_callback: Callable[[], None]) -> None:
     target_dir: str = QFileDialog.getExistingDirectory(parent, "Export to...")
     if target_dir:
+        loading = LoadingDialog("Exporting files...")
+        loading.show()
+        QApplication.processEvents()  # Ensure the dialog renders before blocking
         pull_files(paths, target_dir)
+        loading.close()
         reload_callback()
 
 
-def delete_files(
-    paths: List[str], parent: QWidget, reload_callback: Callable[[], None]
-) -> None:
+def delete_files(paths: List[str], parent: QWidget, reload_callback: Callable[[], None]) -> None:
     reply: QMessageBox.StandardButton = QMessageBox.question(
         parent,
         "Delete Confirmation",
         f"Are you sure you want to delete {len(paths)} file(s)?",
-        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
     )
     if reply == QMessageBox.StandardButton.Yes:
+        loading = LoadingDialog("Deleting files...")
+        loading.show()
+        QApplication.processEvents()
         delete_files_on_device(paths)
+        loading.close()
         reload_callback()
