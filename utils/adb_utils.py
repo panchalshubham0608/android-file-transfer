@@ -1,4 +1,5 @@
 import subprocess
+import os
 from typing import List
 
 
@@ -45,3 +46,15 @@ def is_device_connected() -> bool:
         return result == "device"
     except subprocess.CalledProcessError:
         return False
+
+
+def pull_files(android_paths: List[str], local_dir: str) -> None:
+    for path in android_paths:
+        filename: str = os.path.basename(path)
+        local_path: str = os.path.join(local_dir, filename)
+        subprocess.run(["adb", "pull", path, local_path])
+
+
+def delete_files_on_device(android_paths: List[str]) -> None:
+    for path in android_paths:
+        subprocess.run(["adb", "shell", "rm", "-rf", f'"{path}"'])

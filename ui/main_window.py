@@ -6,14 +6,15 @@ from PyQt6.QtWidgets import (
     QWidget,
     QLabel,
     QHBoxLayout,
-    QHeaderView,
+    QHeaderView
 )
 from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QIcon
-from PyQt6.QtCore import QSize
+from PyQt6.QtCore import QSize, QPoint, Qt
 from utils.adb_utils import list_files, push_file
 import os
 from typing import List
 from ui.table_row import build_file_table_row
+from ui.context_menu import show_context_menu
 
 
 class MainWindow(QMainWindow):
@@ -32,23 +33,25 @@ class MainWindow(QMainWindow):
         # Table setup
         self.table = QTableWidget()
         self.table.setColumnCount(3)
-        self.table.setHorizontalHeaderLabels(self.headers) # type: ignore
-        self.table.cellDoubleClicked.connect(self.navigate) # type: ignore
+        self.table.setHorizontalHeaderLabels(self.headers)  # type: ignore
+        self.table.cellDoubleClicked.connect(self.navigate)  # type: ignore
         self.table.setSortingEnabled(True)
         self.table.setAcceptDrops(True)
-        self.table.viewport().setAcceptDrops(True) # type: ignore
+        self.table.viewport().setAcceptDrops(True)  # type: ignore
+        self.table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.table.customContextMenuRequested.connect(self.handle_context_menu) # type: ignore
         self.setAcceptDrops(True)
 
         # Resize columns
         header = self.table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch) # type: ignore
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents) # type: ignore
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents) # type: ignore
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)  # type: ignore
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)  # type: ignore
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)  # type: ignore
 
         # Toggle button
         self.toggle_hidden_button = QPushButton("Show Hidden")
         self.toggle_hidden_button.setCheckable(True)
-        self.toggle_hidden_button.toggled.connect(self.toggle_hidden_files) # type: ignore
+        self.toggle_hidden_button.toggled.connect(self.toggle_hidden_files)  # type: ignore
 
         # Navigation UI
         self.back_button = QPushButton()
@@ -59,7 +62,7 @@ class MainWindow(QMainWindow):
         self.back_button.setIconSize(QSize(16, 16))
         self.back_button.setFlat(True)
         self.back_button.setStyleSheet("background: transparent; border: none;")
-        self.back_button.clicked.connect(self.go_back) # type: ignore
+        self.back_button.clicked.connect(self.go_back)  # type: ignore
 
         label_text: str = (
             self.current_path
@@ -98,7 +101,7 @@ class MainWindow(QMainWindow):
             )
 
             if result == QMessageBox.StandardButton.Cancel:
-                QTimer.singleShot( # type: ignore
+                QTimer.singleShot(  # type: ignore
                     0, QApplication.quit
                 )  # Ensure event loop starts, then quit
                 return False
@@ -141,12 +144,12 @@ class MainWindow(QMainWindow):
             self.current_path = self.history.pop()
             self.load_files()
 
-    def dragEnterEvent(self, event: QDragEnterEvent): # type: ignore
-        if event.mimeData().hasUrls(): # type: ignore
+    def dragEnterEvent(self, event: QDragEnterEvent):  # type: ignore
+        if event.mimeData().hasUrls():  # type: ignore
             event.acceptProposedAction()
 
-    def dropEvent(self, event: QDropEvent): # type: ignore
-        for url in event.mimeData().urls(): # type: ignore
+    def dropEvent(self, event: QDropEvent):  # type: ignore
+        for url in event.mimeData().urls():  # type: ignore
             local_file = url.toLocalFile()
             if os.path.isfile(local_file):
                 push_file(local_file, self.current_path)
@@ -156,3 +159,11 @@ class MainWindow(QMainWindow):
         self.show_hidden = checked
         self.toggle_hidden_button.setText("Hide Hidden" if checked else "Show Hidden")
         self.load_files()
+
+    def handle_context_menu(self, _: QPoint):
+        show_context_menu(
+            parent=self,
+            table_widget=self.table,
+            current_path=self.current_path,
+            reload_callback=self.load_files,
+        )
