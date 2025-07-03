@@ -1,13 +1,22 @@
 from PyQt6.QtWidgets import (
-    QMainWindow, QTableWidget, QTableWidgetItem, QVBoxLayout, QPushButton,
-    QWidget, QLabel, QHBoxLayout, QHeaderView
+    QMainWindow,
+    QTableWidget,
+    QTableWidgetItem,
+    QVBoxLayout,
+    QPushButton,
+    QWidget,
+    QLabel,
+    QHBoxLayout,
+    QHeaderView,
 )
-from PyQt6.QtGui import QDragEnterEvent, QDropEvent
+from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QIcon
+from PyQt6.QtCore import QSize
 from utils.adb_utils import list_files, push_file
 from utils.size_utils import human_readable_size
 from ui.sortable_table_widget import SortableTableWidgetItem
 import os
 from typing import List
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -44,17 +53,28 @@ class MainWindow(QMainWindow):
         self.toggle_hidden_button.toggled.connect(self.toggle_hidden_files)
 
         # Navigation UI
-        self.back_button = QPushButton("◀")
+        self.back_button = QPushButton()
+        back_button_icon_path = os.path.join(
+            os.path.dirname(__file__), "../assets/chevron-left.png"
+        )
+        self.back_button.setIcon(QIcon(back_button_icon_path))
+        self.back_button.setIconSize(QSize(16, 16))
+        self.back_button.setFlat(True)
+        self.back_button.setStyleSheet("background: transparent; border: none;")
         self.back_button.clicked.connect(self.go_back)
 
-        label_text: str = self.current_path if self.current_path == self.base_path else os.path.basename(self.current_path)
+        label_text: str = (
+            self.current_path
+            if self.current_path == self.base_path
+            else os.path.basename(self.current_path)
+        )
         self.path_label = QLabel(label_text)
 
         nav_layout = QHBoxLayout()
         nav_layout.addWidget(self.back_button)
         nav_layout.addWidget(self.path_label)
-        nav_layout.addWidget(self.toggle_hidden_button)
         nav_layout.addStretch()
+        nav_layout.addWidget(self.toggle_hidden_button)
 
         layout = QVBoxLayout()
         layout.addLayout(nav_layout)
@@ -76,29 +96,41 @@ class MainWindow(QMainWindow):
                 self,
                 "ADB Error",
                 "No Android device connected via ADB.\nPlease check your USB connection and try again.",
-                QMessageBox.StandardButton.Retry | QMessageBox.StandardButton.Cancel
+                QMessageBox.StandardButton.Retry | QMessageBox.StandardButton.Cancel,
             )
 
             if result == QMessageBox.StandardButton.Cancel:
-                QTimer.singleShot(0, QApplication.quit)  # Ensure event loop starts, then quit
+                QTimer.singleShot(
+                    0, QApplication.quit
+                )  # Ensure event loop starts, then quit
                 return False
 
         return True
 
-
     def load_files(self):
         if not self.ensure_device_connected():
-            return # Prevent loading files if no device is connected
+            return  # Prevent loading files if no device is connected
 
-        label_text = self.current_path if self.current_path == self.base_path else os.path.basename(self.current_path)
+        label_text = (
+            self.current_path
+            if self.current_path == self.base_path
+            else os.path.basename(self.current_path)
+        )
         self.path_label.setText(label_text)
+        self.back_button.setEnabled(bool(self.history))
 
         files = list_files(self.current_path)
-        visible_files = [f for f in files if self.show_hidden or not f.name.startswith(".")]
+        visible_files = [
+            f for f in files if self.show_hidden or not f.name.startswith(".")
+        ]
         self.table.setRowCount(len(visible_files))
 
         for row, entry in enumerate(visible_files):
-            self.table.setItem(row, 0, QTableWidgetItem(("📁 " if entry.is_dir else "📄 ") + entry.name))
+            self.table.setItem(
+                row,
+                0,
+                QTableWidgetItem(("📁 " if entry.is_dir else "📄 ") + entry.name),
+            )
             try:
                 size_bytes = int(entry.size)
                 size_str = human_readable_size(size_bytes)
@@ -132,7 +164,7 @@ class MainWindow(QMainWindow):
             if os.path.isfile(local_file):
                 push_file(local_file, self.current_path)
         self.load_files()
-    
+
     def toggle_hidden_files(self, checked: bool) -> None:
         self.show_hidden = checked
         self.toggle_hidden_button.setText("Hide Hidden" if checked else "Show Hidden")

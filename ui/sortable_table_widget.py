@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import QTableWidgetItem
 from typing import Any
 
+
 class SortableTableWidgetItem(QTableWidgetItem):
     def __init__(self, text: str, sort_value: Any):
         super().__init__(text)
