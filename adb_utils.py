@@ -32,3 +32,10 @@ def pull_file(android_path: str, local_path: str):
 
 def push_file(local_path: str, android_path: str):
     subprocess.run(["adb", "push", local_path, android_path])
+
+def is_device_connected() -> bool:
+    try:
+        result = subprocess.check_output(["adb", "get-state"], text=True).strip()
+        return result == "device"
+    except subprocess.CalledProcessError:
+        return False
