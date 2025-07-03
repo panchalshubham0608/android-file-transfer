@@ -32,23 +32,23 @@ class MainWindow(QMainWindow):
         # Table setup
         self.table = QTableWidget()
         self.table.setColumnCount(3)
-        self.table.setHorizontalHeaderLabels(self.headers)
-        self.table.cellDoubleClicked.connect(self.navigate)
+        self.table.setHorizontalHeaderLabels(self.headers) # type: ignore
+        self.table.cellDoubleClicked.connect(self.navigate) # type: ignore
         self.table.setSortingEnabled(True)
         self.table.setAcceptDrops(True)
-        self.table.viewport().setAcceptDrops(True)
+        self.table.viewport().setAcceptDrops(True) # type: ignore
         self.setAcceptDrops(True)
 
         # Resize columns
         header = self.table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch) # type: ignore
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents) # type: ignore
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents) # type: ignore
 
         # Toggle button
         self.toggle_hidden_button = QPushButton("Show Hidden")
         self.toggle_hidden_button.setCheckable(True)
-        self.toggle_hidden_button.toggled.connect(self.toggle_hidden_files)
+        self.toggle_hidden_button.toggled.connect(self.toggle_hidden_files) # type: ignore
 
         # Navigation UI
         self.back_button = QPushButton()
@@ -59,7 +59,7 @@ class MainWindow(QMainWindow):
         self.back_button.setIconSize(QSize(16, 16))
         self.back_button.setFlat(True)
         self.back_button.setStyleSheet("background: transparent; border: none;")
-        self.back_button.clicked.connect(self.go_back)
+        self.back_button.clicked.connect(self.go_back) # type: ignore
 
         label_text: str = (
             self.current_path
@@ -98,7 +98,7 @@ class MainWindow(QMainWindow):
             )
 
             if result == QMessageBox.StandardButton.Cancel:
-                QTimer.singleShot(
+                QTimer.singleShot( # type: ignore
                     0, QApplication.quit
                 )  # Ensure event loop starts, then quit
                 return False
@@ -141,12 +141,12 @@ class MainWindow(QMainWindow):
             self.current_path = self.history.pop()
             self.load_files()
 
-    def dragEnterEvent(self, event: QDragEnterEvent):
-        if event.mimeData().hasUrls():
+    def dragEnterEvent(self, event: QDragEnterEvent): # type: ignore
+        if event.mimeData().hasUrls(): # type: ignore
             event.acceptProposedAction()
 
-    def dropEvent(self, event: QDropEvent):
-        for url in event.mimeData().urls():
+    def dropEvent(self, event: QDropEvent): # type: ignore
+        for url in event.mimeData().urls(): # type: ignore
             local_file = url.toLocalFile()
             if os.path.isfile(local_file):
                 push_file(local_file, self.current_path)
