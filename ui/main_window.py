@@ -2,39 +2,30 @@ from PyQt6.QtWidgets import (
     QMainWindow, QTableWidget, QTableWidgetItem, QVBoxLayout, QPushButton,
     QWidget, QLabel, QHBoxLayout, QHeaderView
 )
-
 from PyQt6.QtGui import QDragEnterEvent, QDropEvent
-
+from utils.adb_utils import list_files, push_file
+from utils.size_utils import human_readable_size
+from ui.sortable_table_widget import SortableTableWidgetItem
 import os
-
-from adb_utils import list_files, push_file
-
-class SortableTableWidgetItem(QTableWidgetItem):
-    def __init__(self, text: str, sort_value):
-        super().__init__(text)
-        self.sort_value = sort_value
-
-    def __lt__(self, other):
-        if isinstance(other, SortableTableWidgetItem):
-            return self.sort_value < other.sort_value
-        return super().__lt__(other)
+from typing import List
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Android File Browser")
         self.resize(800, 600)
+        self.headers: List[str] = ["Name", "Size", "Modified"]
 
         # Set base and current path
         self.base_path = "/storage/emulated/0"
-        self.current_path = self.base_path
+        self.current_path: str = self.base_path
         self.show_hidden = False
-        self.history = []
+        self.history: List[str] = []
 
         # Table setup
         self.table = QTableWidget()
         self.table.setColumnCount(3)
-        self.table.setHorizontalHeaderLabels(["Name", "Size", "Modified"])
+        self.table.setHorizontalHeaderLabels(self.headers)
         self.table.cellDoubleClicked.connect(self.navigate)
         self.table.setSortingEnabled(True)
         self.table.setAcceptDrops(True)
@@ -56,7 +47,7 @@ class MainWindow(QMainWindow):
         self.back_button = QPushButton("◀")
         self.back_button.clicked.connect(self.go_back)
 
-        label_text = self.current_path if self.current_path == self.base_path else os.path.basename(self.current_path)
+        label_text: str = self.current_path if self.current_path == self.base_path else os.path.basename(self.current_path)
         self.path_label = QLabel(label_text)
 
         nav_layout = QHBoxLayout()
@@ -76,7 +67,7 @@ class MainWindow(QMainWindow):
         self.load_files()
 
     def ensure_device_connected(self) -> bool:
-        from adb_utils import is_device_connected
+        from utils.adb_utils import is_device_connected
         from PyQt6.QtWidgets import QMessageBox, QApplication
         from PyQt6.QtCore import QTimer
 
@@ -118,7 +109,7 @@ class MainWindow(QMainWindow):
             self.table.setItem(row, 1, size_item)
             self.table.setItem(row, 2, QTableWidgetItem(entry.modified))
 
-    def navigate(self, row, _):
+    def navigate(self, row: int, _: int) -> None:
         item = self.table.item(row, 0)
         if item and item.text().startswith("📁"):
             folder_name = item.text()[2:].strip()
@@ -126,7 +117,7 @@ class MainWindow(QMainWindow):
             self.current_path = os.path.join(self.current_path, folder_name)
             self.load_files()
 
-    def go_back(self):
+    def go_back(self) -> None:
         if self.history:
             self.current_path = self.history.pop()
             self.load_files()
@@ -142,14 +133,7 @@ class MainWindow(QMainWindow):
                 push_file(local_file, self.current_path)
         self.load_files()
     
-    def toggle_hidden_files(self, checked: bool):
+    def toggle_hidden_files(self, checked: bool) -> None:
         self.show_hidden = checked
         self.toggle_hidden_button.setText("Hide Hidden" if checked else "Show Hidden")
         self.load_files()
-
-def human_readable_size(size_bytes: int) -> str:
-    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
-        if size_bytes < 1024.0:
-            return f"{size_bytes:.1f} {unit}"
-        size_bytes /= 1024.0
-    return f"{size_bytes:.1f} PB"

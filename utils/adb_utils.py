@@ -1,6 +1,5 @@
 import subprocess
-import os
-from typing import List, Tuple
+from typing import List
 
 class AdbFileEntry:
     def __init__(self, name: str, size: str, modified: str, is_dir: bool):
@@ -13,7 +12,7 @@ def list_files(path: str) -> List[AdbFileEntry]:
     try:
         result = subprocess.check_output(["adb", "shell", f"ls -la '{path}'"], text=True)
         lines = result.strip().split('\n')[1:]  # Skip total line
-        entries = []
+        entries: List[AdbFileEntry] = []
         for line in lines:
             parts = line.split()
             if len(parts) < 8:
