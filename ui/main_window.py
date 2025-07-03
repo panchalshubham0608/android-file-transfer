@@ -73,8 +73,6 @@ class MainWindow(QMainWindow):
         container.setLayout(layout)
         self.setCentralWidget(container)
 
-        if not self.ensure_device_connected():
-            return
         self.load_files()
 
     def ensure_device_connected(self) -> bool:
@@ -98,6 +96,9 @@ class MainWindow(QMainWindow):
 
 
     def load_files(self):
+        if not self.ensure_device_connected():
+            return # Prevent loading files if no device is connected
+
         label_text = self.current_path if self.current_path == self.base_path else os.path.basename(self.current_path)
         self.path_label.setText(label_text)
 
