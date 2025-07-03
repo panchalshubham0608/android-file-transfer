@@ -1,7 +1,6 @@
 from PyQt6.QtWidgets import (
     QMainWindow,
     QTableWidget,
-    QTableWidgetItem,
     QVBoxLayout,
     QPushButton,
     QWidget,
@@ -12,10 +11,9 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QIcon
 from PyQt6.QtCore import QSize
 from utils.adb_utils import list_files, push_file
-from utils.size_utils import human_readable_size
-from ui.sortable_table_widget import SortableTableWidgetItem
 import os
 from typing import List
+from ui.table_row import build_file_table_row
 
 
 class MainWindow(QMainWindow):
@@ -126,20 +124,9 @@ class MainWindow(QMainWindow):
         self.table.setRowCount(len(visible_files))
 
         for row, entry in enumerate(visible_files):
-            self.table.setItem(
-                row,
-                0,
-                QTableWidgetItem(("📁 " if entry.is_dir else "📄 ") + entry.name),
-            )
-            try:
-                size_bytes = int(entry.size)
-                size_str = human_readable_size(size_bytes)
-                size_item = SortableTableWidgetItem(size_str, size_bytes)
-            except ValueError:
-                size_str = entry.size  # fallback if parsing fails
-                size_item = QTableWidgetItem(entry.size)
-            self.table.setItem(row, 1, size_item)
-            self.table.setItem(row, 2, QTableWidgetItem(entry.modified))
+            items = build_file_table_row(entry)
+            for col, item in enumerate(items):
+                self.table.setItem(row, col, item)
 
     def navigate(self, row: int, _: int) -> None:
         item = self.table.item(row, 0)
