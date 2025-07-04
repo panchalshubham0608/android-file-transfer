@@ -9,7 +9,7 @@ def show_no_device_dialog(parent: QWidget) -> bool:
 
     pixmap = QPixmap("assets/device-error.png")
     if not pixmap.isNull():
-        box.setIconPixmap(pixmap.scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio))
+        box.setIconPixmap(pixmap.scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
     else:
         box.setIcon(QMessageBox.Icon.Critical)
 
@@ -32,7 +32,7 @@ def show_delete_confirmation(parent: QWidget, file_count: int) -> bool:
 
     pixmap = QPixmap("assets/delete_warning.png")
     if not pixmap.isNull():
-        box.setIconPixmap(pixmap.scaled(48, 48, Qt.AspectRatioMode.KeepAspectRatio))
+        box.setIconPixmap(pixmap.scaled(48, 48, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
     else:
         box.setIcon(QMessageBox.Icon.Warning)
 
@@ -50,7 +50,7 @@ def show_usb_debugging_reminder(parent: QWidget) -> None:
 
     pixmap = QPixmap("assets/usb_debug_warning.png")
     if not pixmap.isNull():
-        box.setIconPixmap(pixmap.scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio))
+        box.setIconPixmap(pixmap.scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
     else:
         box.setIcon(QMessageBox.Icon.Warning)
 
