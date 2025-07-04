@@ -10,12 +10,12 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QIcon
 from PyQt6.QtCore import QSize, QPoint, Qt
-from utils.adb_utils import list_files, push_file
+from utils.adb_utils import list_files, push_file, is_device_connected
 import os
 from typing import List
 from ui.table_row import build_file_table_row
 from ui.context_menu import show_context_menu
-
+from ui.dialog_utils import show_no_device_dialog
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -88,22 +88,8 @@ class MainWindow(QMainWindow):
         self.load_files()
 
     def ensure_device_connected(self) -> bool:
-        from utils.adb_utils import is_device_connected
-        from PyQt6.QtWidgets import QMessageBox, QApplication
-        from PyQt6.QtCore import QTimer
-
         while not is_device_connected():
-            result = QMessageBox.critical(
-                self,
-                "ADB Error",
-                "No Android device connected via ADB.\nPlease check your USB connection and try again.",
-                QMessageBox.StandardButton.Retry | QMessageBox.StandardButton.Cancel,
-            )
-
-            if result == QMessageBox.StandardButton.Cancel:
-                QTimer.singleShot(  # type: ignore
-                    0, QApplication.quit
-                )  # Ensure event loop starts, then quit
+            if not show_no_device_dialog(self):
                 return False
 
         return True
