@@ -57,4 +57,5 @@ def pull_files(android_paths: List[str], local_dir: str) -> None:
 
 def delete_files_on_device(android_paths: List[str]) -> None:
     for path in android_paths:
-        subprocess.run(["adb", "shell", "rm", "-rf", f'"{path}"'])
+        safe_path: str = "'" + path.replace("'", "'\\''") + "'"
+        subprocess.run(["adb", "shell", "rm", "-rf", safe_path])

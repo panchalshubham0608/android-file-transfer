@@ -23,6 +23,21 @@ def show_no_device_dialog(parent: QWidget) -> bool:
 
     return True
 
+def show_delete_confirmation(parent: QWidget, file_count: int) -> bool:
+    box = QMessageBox(parent)
+    box.setWindowTitle("Delete Confirmation")
+    box.setText(f"Are you sure you want to delete {file_count} file(s)?")
+    box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+    box.setDefaultButton(QMessageBox.StandardButton.No)
+
+    pixmap = QPixmap("assets/delete_warning.png")
+    if not pixmap.isNull():
+        box.setIconPixmap(pixmap.scaled(48, 48, Qt.AspectRatioMode.KeepAspectRatio))
+    else:
+        box.setIcon(QMessageBox.Icon.Warning)
+
+    reply = box.exec()
+    return reply == QMessageBox.StandardButton.Yes
 
 def show_usb_debugging_reminder(parent: QWidget) -> None:
     box = QMessageBox(parent)

@@ -13,6 +13,7 @@ from ui.loading_dialog import LoadingDialog
 from PyQt6.QtWidgets import QApplication
 from ui.worker import BackgroundTask
 from PyQt6.QtCore import QThreadPool
+from ui.dialog_utils import show_delete_confirmation
 thread_pool = QThreadPool.globalInstance()
 
 def show_context_menu(
@@ -81,13 +82,7 @@ def export_files(paths: List[str], parent: QWidget, reload_callback: Callable[[]
 
 
 def delete_files(paths: List[str], parent: QWidget, reload_callback: Callable[[], None]) -> None:
-    reply: QMessageBox.StandardButton = QMessageBox.question(
-        parent,
-        "Delete Confirmation",
-        f"Are you sure you want to delete {len(paths)} file(s)?",
-        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-    )
-    if reply != QMessageBox.StandardButton.Yes:
+    if not show_delete_confirmation(parent, len(paths)):
         return
     loading = LoadingDialog("Deleting files...")
     loading.show()
