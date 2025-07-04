@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (
     QWidget,
     QLabel,
     QHBoxLayout,
-    QHeaderView
+    QHeaderView,
 )
 from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QIcon, QCloseEvent
 from PyQt6.QtCore import QSize, QPoint, Qt
@@ -16,6 +16,7 @@ from typing import List
 from ui.table_row import build_file_table_row
 from ui.context_menu import show_context_menu
 from ui.dialog_utils import show_no_device_dialog, show_usb_debugging_reminder
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -39,7 +40,7 @@ class MainWindow(QMainWindow):
         self.table.setAcceptDrops(True)
         self.table.viewport().setAcceptDrops(True)  # type: ignore
         self.table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.table.customContextMenuRequested.connect(self.handle_context_menu) # type: ignore
+        self.table.customContextMenuRequested.connect(self.handle_context_menu)  # type: ignore
         self.setAcceptDrops(True)
 
         # Resize columns
@@ -141,9 +142,9 @@ class MainWindow(QMainWindow):
                 push_file(local_file, self.current_path)
         self.load_files()
 
-    def closeEvent(self, event: QCloseEvent) -> None: # type: ignore
-       show_usb_debugging_reminder(self)
-       event.accept()
+    def closeEvent(self, event: QCloseEvent) -> None:  # type: ignore
+        show_usb_debugging_reminder(self)
+        event.accept()
 
     def toggle_hidden_files(self, checked: bool) -> None:
         self.show_hidden = checked

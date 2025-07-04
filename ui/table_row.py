@@ -5,6 +5,7 @@ from utils.size_utils import human_readable_size
 from typing import List
 from ui.sortable_table_widget import SortableTableWidgetItem
 
+
 def build_file_table_row(entry: AdbFileEntry) -> List[QTableWidgetItem]:
     name = QTableWidgetItem(("📁 " if entry.is_dir else "📄 ") + entry.name)
     modified = QTableWidgetItem(entry.modified)
@@ -15,7 +16,6 @@ def build_file_table_row(entry: AdbFileEntry) -> List[QTableWidgetItem]:
     except ValueError:
         size_str = entry.size  # fallback if parsing fails
         size_item = QTableWidgetItem(entry.size)
-
 
     name.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
     size_item.setFlags(Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable)
