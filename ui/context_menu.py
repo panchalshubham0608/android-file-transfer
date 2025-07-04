@@ -11,6 +11,9 @@ from utils.adb_utils import pull_files, delete_files_on_device
 from PyQt6.QtGui import QAction, QCursor
 from ui.loading_dialog import LoadingDialog
 from PyQt6.QtWidgets import QApplication
+from ui.worker import BackgroundTask
+from PyQt6.QtCore import QThreadPool
+thread_pool = QThreadPool.globalInstance()
 
 def show_context_menu(
     parent: QWidget,
@@ -64,13 +67,17 @@ def show_context_menu(
 
 def export_files(paths: List[str], parent: QWidget, reload_callback: Callable[[], None]) -> None:
     target_dir: str = QFileDialog.getExistingDirectory(parent, "Export to...")
-    if target_dir:
-        loading = LoadingDialog("Exporting files...")
-        loading.show()
-        QApplication.processEvents()  # Ensure the dialog renders before blocking
-        pull_files(paths, target_dir)
-        loading.close()
-        reload_callback()
+    if not target_dir:
+        return
+
+    loading = LoadingDialog("Exporting files...")
+    loading.show()
+    QApplication.processEvents()
+
+    task = BackgroundTask(lambda: pull_files(paths, target_dir))
+    task.signals.finished.connect(lambda: (loading.close(), reload_callback())) # type: ignore
+    task.signals.error.connect(lambda err: print(f"Export error: {err}"))  # type: ignore # Optional error logging
+    thread_pool.start(task) # type: ignore
 
 
 def delete_files(paths: List[str], parent: QWidget, reload_callback: Callable[[], None]) -> None:
@@ -80,10 +87,13 @@ def delete_files(paths: List[str], parent: QWidget, reload_callback: Callable[[]
         f"Are you sure you want to delete {len(paths)} file(s)?",
         QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
     )
-    if reply == QMessageBox.StandardButton.Yes:
-        loading = LoadingDialog("Deleting files...")
-        loading.show()
-        QApplication.processEvents()
-        delete_files_on_device(paths)
-        loading.close()
-        reload_callback()
+    if reply != QMessageBox.StandardButton.Yes:
+        return
+    loading = LoadingDialog("Deleting files...")
+    loading.show()
+    QApplication.processEvents()  # Make sure dialog is shown before blocking task starts
+
+    task = BackgroundTask(lambda: delete_files_on_device(paths))
+    task.signals.finished.connect(lambda: (loading.close(), reload_callback())) # type: ignore
+    task.signals.error.connect(lambda err: print(f"Delete error: {err}"))  # type: ignore # Optional: error handling
+    thread_pool.start(task) # type: ignore
