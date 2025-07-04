@@ -2,7 +2,6 @@ from PyQt6.QtWidgets import QMessageBox, QWidget, QApplication
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt, QTimer
 
-
 def show_no_device_dialog(parent: QWidget) -> bool:
     box = QMessageBox(parent)
     box.setWindowTitle("No Device Found")
@@ -23,3 +22,22 @@ def show_no_device_dialog(parent: QWidget) -> bool:
         return False
 
     return True
+
+
+def show_usb_debugging_reminder(parent: QWidget) -> None:
+    box = QMessageBox(parent)
+    box.setWindowTitle("Security Tip")
+    box.setText(
+        "USB debugging is still enabled.\n\n"
+        "If you're done using the app, consider turning off USB debugging "
+        "from Developer Options to prevent unauthorized access."
+    )
+
+    pixmap = QPixmap("assets/usb_debug_warning.png")
+    if not pixmap.isNull():
+        box.setIconPixmap(pixmap.scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio))
+    else:
+        box.setIcon(QMessageBox.Icon.Warning)
+
+    box.setStandardButtons(QMessageBox.StandardButton.Ok)
+    box.exec()

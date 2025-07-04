@@ -8,14 +8,14 @@ from PyQt6.QtWidgets import (
     QHBoxLayout,
     QHeaderView
 )
-from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QIcon
+from PyQt6.QtGui import QDragEnterEvent, QDropEvent, QIcon, QCloseEvent
 from PyQt6.QtCore import QSize, QPoint, Qt
 from utils.adb_utils import list_files, push_file, is_device_connected
 import os
 from typing import List
 from ui.table_row import build_file_table_row
 from ui.context_menu import show_context_menu
-from ui.dialog_utils import show_no_device_dialog
+from ui.dialog_utils import show_no_device_dialog, show_usb_debugging_reminder
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -140,6 +140,10 @@ class MainWindow(QMainWindow):
             if os.path.isfile(local_file):
                 push_file(local_file, self.current_path)
         self.load_files()
+
+    def closeEvent(self, event: QCloseEvent) -> None: # type: ignore
+       show_usb_debugging_reminder(self)
+       event.accept()
 
     def toggle_hidden_files(self, checked: bool) -> None:
         self.show_hidden = checked
