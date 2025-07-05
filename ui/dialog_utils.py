@@ -7,7 +7,8 @@ def show_no_device_dialog(parent: QWidget) -> bool:
     box = QMessageBox(parent)
     box.setWindowTitle("No Device Found")
     box.setText(
-        "No Android device is connected.\nPlease connect a device and try again."
+        "No Android device detected.\n\n"
+        "Please connect your Android device via USB and ensure USB debugging is enabled in Developer Options."
     )
 
     pixmap = QPixmap("assets/device-error.png")

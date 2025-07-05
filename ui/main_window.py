@@ -143,7 +143,8 @@ class MainWindow(QMainWindow):
         self.load_files()
 
     def closeEvent(self, event: QCloseEvent) -> None:  # type: ignore
-        show_usb_debugging_reminder(self)
+        if is_device_connected():
+            show_usb_debugging_reminder(self)
         event.accept()
 
     def toggle_hidden_files(self, checked: bool) -> None:
